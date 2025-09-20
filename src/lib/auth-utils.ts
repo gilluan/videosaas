@@ -213,7 +213,7 @@ export const authUtils = {
           `,
           variables: {
             input: {
-              googleToken: (user as any).signInUserSession?.accessToken?.jwtToken,
+              googleToken: undefined, // No longer accessing session token directly
               googleId
             }
           }

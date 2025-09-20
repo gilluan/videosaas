@@ -5,11 +5,24 @@ const nextConfig = {
     domains: ['lh3.googleusercontent.com'],
   },
   // Exclude amplify directory from compilation
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.watchOptions = {
       ...config.watchOptions,
       ignored: ['**/amplify/**', '**/node_modules/**'],
     }
+
+    // Add resolve fallback to ignore amplify modules
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      '@aws-amplify/backend': false,
+    }
+
+    // Exclude amplify directory from being processed
+    config.module.rules.push({
+      test: /amplify\/.*\.(ts|tsx|js|jsx)$/,
+      use: 'null-loader',
+    })
+
     return config
   },
 }
