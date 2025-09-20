@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { authUtils, type User, type AuthContextType } from './auth-utils'
+import { Amplify } from 'aws-amplify'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -12,6 +13,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
+        // Configure Amplify only on client side
+        const config = {
+          Auth: {
+            Cognito: {
+              userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || 'temp-pool-id',
+              userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || 'temp-client-id',
+              identityPoolId: process.env.NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID || 'temp-identity-pool-id',
+              loginWith: {
+                oauth: {
+                  domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN || 'temp-domain',
+                  scopes: ['openid', 'email', 'profile'],
+                  redirectSignIn: [`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard`],
+                  redirectSignOut: [`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/`],
+                  responseType: 'code' as const,
+                },
+                email: true,
+              },
+            },
+          },
+          API: {
+            GraphQL: {
+              endpoint: process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'https://temp-api.amazonaws.com/graphql',
+              region: process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1',
+              defaultAuthMode: 'userPool' as const,
+            },
+          },
+        }
+
+        Amplify.configure(config)
+
         const currentUser = await authUtils.getCurrentUser()
         setUser(currentUser)
       } catch (error) {

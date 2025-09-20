@@ -1,8 +1,21 @@
 import { generateClient } from 'aws-amplify/api'
 import type { Schema } from '../../amplify/data/resource'
 
-// Generate the typed GraphQL client
-export const client = generateClient<Schema>()
+// Helper function to get client safely
+function getGraphQLClient() {
+  // Don't try to create client during build process
+  if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+    return null
+  }
+  return generateClient<Schema>()
+}
+
+// Legacy client export - deprecated, use graphqlOperations instead
+export const client = {
+  graphql: () => {
+    throw new Error('Use graphqlOperations instead of direct client access')
+  }
+}
 
 // Helper types for common operations
 export type CreateUserInput = {
@@ -56,7 +69,11 @@ export type UpdateUserSettingsInput = {
 export const graphqlOperations = {
   // User operations
   async getUser(id: string) {
-    return await client.graphql({
+    const graphqlClient = getGraphQLClient()
+    if (!graphqlClient) {
+      throw new Error('GraphQL client not available')
+    }
+    return await graphqlClient.graphql({
       query: `
         query GetUser($id: ID!) {
           getUser(id: $id) {
@@ -78,7 +95,11 @@ export const graphqlOperations = {
   },
 
   async getUserByEmail(email: string) {
-    return await client.graphql({
+    const graphqlClient = getGraphQLClient()
+    if (!graphqlClient) {
+      throw new Error('GraphQL client not available')
+    }
+    return await graphqlClient.graphql({
       query: `
         query GetUserByEmail($email: String!) {
           getUserByEmail(email: $email) {
@@ -98,7 +119,11 @@ export const graphqlOperations = {
   },
 
   async createUser(input: CreateUserInput) {
-    return await client.graphql({
+    const graphqlClient = getGraphQLClient()
+    if (!graphqlClient) {
+      throw new Error('GraphQL client not available')
+    }
+    return await graphqlClient.graphql({
       query: `
         mutation CreateUser($input: CreateUserInput!) {
           createUser(input: $input) {
@@ -118,7 +143,11 @@ export const graphqlOperations = {
   },
 
   async updateUser(input: UpdateUserInput) {
-    return await client.graphql({
+    const graphqlClient = getGraphQLClient()
+    if (!graphqlClient) {
+      throw new Error('GraphQL client not available')
+    }
+    return await graphqlClient.graphql({
       query: `
         mutation UpdateUser($input: UpdateUserInput!) {
           updateUser(input: $input) {
@@ -136,7 +165,11 @@ export const graphqlOperations = {
 
   // Subscription operations
   async getUserSubscription(userId: string) {
-    return await client.graphql({
+    const graphqlClient = getGraphQLClient()
+    if (!graphqlClient) {
+      throw new Error('GraphQL client not available')
+    }
+    return await graphqlClient.graphql({
       query: `
         query GetUserSubscription($userId: ID!) {
           getUserSubscription(userId: $userId) {
@@ -157,7 +190,11 @@ export const graphqlOperations = {
   },
 
   async createSubscription(input: CreateSubscriptionInput) {
-    return await client.graphql({
+    const graphqlClient = getGraphQLClient()
+    if (!graphqlClient) {
+      throw new Error('GraphQL client not available')
+    }
+    return await graphqlClient.graphql({
       query: `
         mutation CreateSubscription($input: CreateSubscriptionInput!) {
           createSubscription(input: $input) {
@@ -176,7 +213,11 @@ export const graphqlOperations = {
   },
 
   async updateSubscription(input: UpdateSubscriptionInput) {
-    return await client.graphql({
+    const graphqlClient = getGraphQLClient()
+    if (!graphqlClient) {
+      throw new Error('GraphQL client not available')
+    }
+    return await graphqlClient.graphql({
       query: `
         mutation UpdateSubscription($input: UpdateSubscriptionInput!) {
           updateSubscription(input: $input) {
@@ -193,7 +234,11 @@ export const graphqlOperations = {
 
   // Settings operations
   async getUserSettings(userId: string) {
-    return await client.graphql({
+    const graphqlClient = getGraphQLClient()
+    if (!graphqlClient) {
+      throw new Error('GraphQL client not available')
+    }
+    return await graphqlClient.graphql({
       query: `
         query GetUserSettings($userId: ID!) {
           getUserSettings(userId: $userId) {
@@ -214,7 +259,11 @@ export const graphqlOperations = {
   },
 
   async updateUserSettings(input: UpdateUserSettingsInput) {
-    return await client.graphql({
+    const graphqlClient = getGraphQLClient()
+    if (!graphqlClient) {
+      throw new Error('GraphQL client not available')
+    }
+    return await graphqlClient.graphql({
       query: `
         mutation UpdateUserSettings($input: UpdateUserSettingsInput!) {
           updateUserSettings(input: $input) {
@@ -235,7 +284,11 @@ export const graphqlOperations = {
 
   // OAuth operations
   async linkGoogleAccount(input: { googleToken: string; googleId: string }) {
-    return await client.graphql({
+    const graphqlClient = getGraphQLClient()
+    if (!graphqlClient) {
+      throw new Error('GraphQL client not available')
+    }
+    return await graphqlClient.graphql({
       query: `
         mutation LinkGoogleAccount($input: LinkGoogleAccountInput!) {
           linkGoogleAccount(input: $input) {
@@ -250,7 +303,11 @@ export const graphqlOperations = {
   },
 
   async unlinkGoogleAccount(userId: string) {
-    return await client.graphql({
+    const graphqlClient = getGraphQLClient()
+    if (!graphqlClient) {
+      throw new Error('GraphQL client not available')
+    }
+    return await graphqlClient.graphql({
       query: `
         mutation UnlinkGoogleAccount($userId: ID!) {
           unlinkGoogleAccount(userId: $userId) {
