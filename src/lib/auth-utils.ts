@@ -35,6 +35,11 @@ export function generateTenantId(): string {
 export const authUtils = {
   async getCurrentUser(): Promise<User | null> {
     try {
+      // Don't try to get user during build process
+      if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+        return null
+      }
+
       const cognitoUser = await getCurrentUser()
 
       // Get user data from our GraphQL API
@@ -182,7 +187,8 @@ export const authUtils = {
 
   async handleOAuthCallback(user: AuthUser): Promise<User> {
     try {
-      const { email, name, picture } = (user as any).attributes || {}
+      const userAttributes = user.attributes as { email?: string; name?: string; picture?: string } | undefined
+      const { email, name, picture } = userAttributes || {}
       const googleId = user.username // Cognito maps Google ID to username
 
       // Check if user already exists

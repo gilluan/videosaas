@@ -29,7 +29,9 @@ const config = {
   },
 }
 
-// Configure Amplify
-Amplify.configure(config)
+// Only configure Amplify if not in build process
+if (typeof window !== 'undefined' || process.env.NODE_ENV !== 'production') {
+  Amplify.configure(config)
+}
 
 export default Amplify

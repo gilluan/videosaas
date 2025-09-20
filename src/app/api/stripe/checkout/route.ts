@@ -13,6 +13,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if we're in build time (no runtime auth available)
+    if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID) {
+      return NextResponse.json(
+        { error: 'Service temporarily unavailable' },
+        { status: 503 }
+      )
+    }
+
     // Verify the user exists and get their tenant ID
     const user = await authUtils.getCurrentUser()
     if (!user || user.id !== userId) {
