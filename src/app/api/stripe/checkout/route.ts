@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripeUtils } from '@/lib/stripe-utils'
-import { authUtils } from '@/lib/auth-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,13 +12,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if we're in build time (no runtime auth available)
-    if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID) {
+    // Skip auth check during build/static generation
+    if (process.env.NODE_ENV === 'production' && !process.env.RUNTIME_ENV) {
       return NextResponse.json(
         { error: 'Service temporarily unavailable' },
         { status: 503 }
       )
     }
+
+    // Dynamically import auth utils to prevent build-time loading
+    const { authUtils } = await import('@/lib/auth-utils')
 
     // Verify the user exists and get their tenant ID
     const user = await authUtils.getCurrentUser()

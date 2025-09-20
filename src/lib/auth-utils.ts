@@ -1,14 +1,34 @@
-import { getCurrentUser, signOut, signIn, signUp, confirmSignUp, resendSignUpCode, type AuthUser } from 'aws-amplify/auth'
-import { generateClient } from 'aws-amplify/api'
-import type { Schema } from '../../amplify/data/resource'
+// Dynamic imports to prevent build-time Amplify initialization
+let amplifyAuth: typeof import('aws-amplify/auth') | null = null
+let amplifyApi: typeof import('aws-amplify/api') | null = null
+
+async function getAmplifyAuth() {
+  if (!amplifyAuth && typeof window !== 'undefined') {
+    amplifyAuth = await import('aws-amplify/auth')
+  }
+  return amplifyAuth
+}
+
+async function getAmplifyApi() {
+  if (!amplifyApi && typeof window !== 'undefined') {
+    amplifyApi = await import('aws-amplify/api')
+  }
+  return amplifyApi
+}
 
 // Helper function to get client safely
-function getGraphQLClient() {
+async function getGraphQLClient() {
   // Don't try to create client during build process
-  if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+  if (typeof window === 'undefined') {
     return null
   }
-  return generateClient<Schema>()
+
+  const api = await getAmplifyApi()
+  if (!api) {
+    return null
+  }
+
+  return api.generateClient()
 }
 
 export interface User {
@@ -43,14 +63,19 @@ export const authUtils = {
   async getCurrentUser(): Promise<User | null> {
     try {
       // Don't try to get user during build process
-      if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+      if (typeof window === 'undefined') {
         return null
       }
 
-      const cognitoUser = await getCurrentUser()
+      const auth = await getAmplifyAuth()
+      if (!auth) {
+        return null
+      }
+
+      const cognitoUser = await auth.getCurrentUser()
 
       // Get user data from our GraphQL API
-      const client = getGraphQLClient()
+      const client = await getGraphQLClient()
       if (!client) {
         return null
       }
