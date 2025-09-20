@@ -108,13 +108,13 @@ export default function SignupPage() {
 
           <div className="text-center text-xs text-muted-foreground">
             By creating an account, you agree to our{' '}
-            <Link href="/terms" className="hover:underline">
+            <span className="underline">
               Terms of Service
-            </Link>{' '}
+            </span>{' '}
             and{' '}
-            <Link href="/privacy" className="hover:underline">
+            <span className="underline">
               Privacy Policy
-            </Link>
+            </span>
             .
           </div>
         </CardContent>

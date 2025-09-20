@@ -41,6 +41,17 @@ export type UpdateSubscriptionInput = {
   canceledAt?: string
 }
 
+export type UpdateUserSettingsInput = {
+  userId: string
+  theme?: 'light' | 'dark' | 'system'
+  language?: string
+  timezone?: string
+  emailNotifications?: boolean
+  browserNotifications?: boolean
+  marketingEmails?: boolean
+  billingNotifications?: boolean
+}
+
 // Common GraphQL operations
 export const graphqlOperations = {
   // User operations
@@ -202,7 +213,7 @@ export const graphqlOperations = {
     })
   },
 
-  async updateUserSettings(input: any) {
+  async updateUserSettings(input: UpdateUserSettingsInput) {
     return await client.graphql({
       query: `
         mutation UpdateUserSettings($input: UpdateUserSettingsInput!) {

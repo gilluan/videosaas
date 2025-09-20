@@ -14,7 +14,7 @@ const config = {
           scopes: ['openid', 'email', 'profile'],
           redirectSignIn: [`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard`],
           redirectSignOut: [`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/`],
-          responseType: 'code',
+          responseType: 'code' as const,
         },
         email: true,
       },
@@ -24,7 +24,7 @@ const config = {
     GraphQL: {
       endpoint: process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'https://temp-api.amazonaws.com/graphql',
       region: process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1',
-      defaultAuthMode: 'userPool',
+      defaultAuthMode: 'userPool' as const,
     },
   },
 }

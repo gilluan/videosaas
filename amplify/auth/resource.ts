@@ -1,4 +1,4 @@
-import { defineAuth } from '@aws-amplify/backend'
+import { defineAuth, secret } from '@aws-amplify/backend'
 
 export const auth = defineAuth({
   loginWith: {
@@ -10,16 +10,16 @@ export const auth = defineAuth({
     },
     externalProviders: {
       google: {
-        clientId: process.env.GOOGLE_CLIENT_ID!,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        clientId: secret('GOOGLE_CLIENT_ID'),
+        clientSecret: secret('GOOGLE_CLIENT_SECRET'),
         scopes: ['openid', 'email', 'profile'],
       },
       callbackUrls: [
-        process.env.NEXT_PUBLIC_APP_URL + '/auth/callback',
+        (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000') + '/auth/callback',
         'http://localhost:3000/auth/callback',
       ],
       logoutUrls: [
-        process.env.NEXT_PUBLIC_APP_URL,
+        process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
         'http://localhost:3000',
       ],
     },
@@ -29,20 +29,9 @@ export const auth = defineAuth({
       required: true,
       mutable: true,
     },
-    name: {
-      required: true,
-      mutable: true,
-    },
-    picture: {
+    preferredUsername: {
       required: false,
       mutable: true,
     },
-  },
-  passwordPolicy: {
-    minLength: 8,
-    requireLowercase: true,
-    requireUppercase: true,
-    requireNumbers: true,
-    requireSymbols: true,
   },
 })

@@ -82,7 +82,7 @@ export const tenantUtils = {
   },
 
   // Ensure tenant isolation in data queries
-  addTenantFilter(filters: Record<string, any>, tenantId: string): Record<string, any> {
+  addTenantFilter(filters: Record<string, unknown>, tenantId: string): Record<string, unknown> {
     return {
       ...filters,
       tenantId: { eq: tenantId },
@@ -98,7 +98,8 @@ export const tenantUtils = {
       }
 
       const result = await graphqlOperations.getUserSubscription(tenant.user.id)
-      return result.data?.getUserSubscription || null
+      const data = 'data' in result ? result.data : null
+      return data?.getUserSubscription || null
     } catch (error) {
       console.error('Error getting tenant subscription:', error)
       return null
@@ -114,7 +115,8 @@ export const tenantUtils = {
       }
 
       const result = await graphqlOperations.getUserSettings(tenant.user.id)
-      return result.data?.getUserSettings || null
+      const data = 'data' in result ? result.data : null
+      return data?.getUserSettings || null
     } catch (error) {
       console.error('Error getting tenant settings:', error)
       return null
@@ -122,7 +124,7 @@ export const tenantUtils = {
   },
 
   // Update tenant settings
-  async updateTenantSettings(settings: Record<string, any>) {
+  async updateTenantSettings(settings: Record<string, unknown>) {
     try {
       const tenant = await this.getCurrentTenant()
       if (!tenant) {
@@ -134,7 +136,8 @@ export const tenantUtils = {
         ...settings,
       })
 
-      return result.data?.updateUserSettings
+      const data = 'data' in result ? result.data : null
+      return data?.updateUserSettings
     } catch (error) {
       console.error('Error updating tenant settings:', error)
       throw error

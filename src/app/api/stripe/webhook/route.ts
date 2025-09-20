@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripeUtils } from '@/lib/stripe-utils'
 import { generateClient } from 'aws-amplify/api'
 import type { Schema } from '../../../../../amplify/data/resource'
+import Stripe from 'stripe'
 
 const client = generateClient<Schema>()
 
@@ -22,10 +23,10 @@ export async function POST(request: NextRequest) {
 
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as any
+        const session = event.data.object as Stripe.Checkout.Session
 
         // Extract metadata
-        const { userId, tenantId } = session.metadata
+        const { userId, tenantId } = session.metadata || {}
         const subscriptionId = session.subscription
         const customerId = session.customer
 
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
       }
 
       case 'invoice.payment_succeeded': {
-        const invoice = event.data.object as any
+        const invoice = event.data.object as Stripe.Invoice
         const subscriptionId = invoice.subscription
 
         // Update subscription status
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
       }
 
       case 'invoice.payment_failed': {
-        const invoice = event.data.object as any
+        const invoice = event.data.object as Stripe.Invoice
         const subscriptionId = invoice.subscription
 
         // Update subscription status to past due
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
       }
 
       case 'customer.subscription.deleted': {
-        const subscription = event.data.object as any
+        const subscription = event.data.object as Stripe.Subscription
 
         // Update subscription status to cancelled
         await client.graphql({

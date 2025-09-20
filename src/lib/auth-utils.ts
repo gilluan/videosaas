@@ -1,4 +1,4 @@
-import { getCurrentUser, signOut, signIn, signUp, confirmSignUp, resendSignUpCode } from 'aws-amplify/auth'
+import { getCurrentUser, signOut, signIn, signUp, confirmSignUp, resendSignUpCode, type AuthUser } from 'aws-amplify/auth'
 import { generateClient } from 'aws-amplify/api'
 import type { Schema } from '../../amplify/data/resource'
 
@@ -38,7 +38,7 @@ export const authUtils = {
       const cognitoUser = await getCurrentUser()
 
       // Get user data from our GraphQL API
-      const { data } = await client.graphql({
+      const result = await client.graphql({
         query: `
           query GetCurrentUser($id: ID!) {
             getUser(id: $id) {
@@ -56,6 +56,7 @@ export const authUtils = {
         variables: { id: cognitoUser.userId }
       })
 
+      const data = 'data' in result ? result.data : null
       if (data?.getUser) {
         return data.getUser as User
       }
@@ -179,13 +180,13 @@ export const authUtils = {
     }
   },
 
-  async handleOAuthCallback(user: any): Promise<User> {
+  async handleOAuthCallback(user: AuthUser): Promise<User> {
     try {
-      const { email, name, picture } = user.attributes
+      const { email, name, picture } = (user as any).attributes || {}
       const googleId = user.username // Cognito maps Google ID to username
 
       // Check if user already exists
-      const { data: existingUser } = await client.graphql({
+      const existingUserResult = await client.graphql({
         query: `
           query GetUserByEmail($email: String!) {
             getUserByEmail(email: $email) {
@@ -197,7 +198,8 @@ export const authUtils = {
         variables: { email }
       })
 
-      if (existingUser?.getUserByEmail) {
+      const existingUserData = 'data' in existingUserResult ? existingUserResult.data : null
+      if (existingUserData?.getUserByEmail) {
         // Link Google account to existing user
         await client.graphql({
           query: `
@@ -211,7 +213,7 @@ export const authUtils = {
           `,
           variables: {
             input: {
-              googleToken: user.signInUserSession?.accessToken?.jwtToken,
+              googleToken: (user as any).signInUserSession?.accessToken?.jwtToken,
               googleId
             }
           }

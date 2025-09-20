@@ -40,7 +40,7 @@ const schema = a.schema({
       user: a.belongsTo('User', 'userId'),
     })
     .authorization((allow) => [
-      allow.owner('userId'),
+      allow.owner(),
       allow.authenticated().to(['read']),
     ])
     .secondaryIndexes((index) => [
@@ -69,7 +69,6 @@ const schema = a.schema({
       allow.owner().to(['create', 'update', 'delete']),
     ])
     .secondaryIndexes((index) => [
-      index('active').name('byActive'),
       index('priority').name('byPriority'),
     ]),
 
@@ -78,13 +77,13 @@ const schema = a.schema({
     .model({
       userId: a.string().required(),
       tenantId: a.string().required(),
-      theme: a.enum(['LIGHT', 'DARK', 'SYSTEM']).default('SYSTEM'),
+      theme: a.enum(['LIGHT', 'DARK', 'SYSTEM']),
       notifications: a.json().required(),
       language: a.string().required().default('en'),
       timezone: a.string().required().default('UTC'),
       user: a.belongsTo('User', 'userId'),
     })
-    .authorization((allow) => [allow.owner('userId')])
+    .authorization((allow) => [allow.owner()])
     .secondaryIndexes((index) => [index('userId').name('byUser')]),
 
   // Dashboard Metrics model
@@ -100,10 +99,9 @@ const schema = a.schema({
       churnRate: a.float().required(),
       user: a.belongsTo('User', 'userId'),
     })
-    .authorization((allow) => [allow.owner('userId')])
+    .authorization((allow) => [allow.owner()])
     .secondaryIndexes((index) => [
       index('userId').name('byUser'),
-      index('userId', 'metricDate').name('byUserDate'),
     ]),
 
   // Custom mutations for Stripe integration
