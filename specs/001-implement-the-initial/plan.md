@@ -1,8 +1,8 @@
 
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Initial SaaS Structure with Google Login
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Branch**: `001-implement-the-initial` | **Date**: 2025-09-20 | **Spec**: [spec.md](./spec.md)
+**Input**: Feature specification from `/home/formiga/wo/github/videosaas/specs/001-implement-the-initial/spec.md`
 
 ## Execution Flow (/plan command scope)
 ```
@@ -31,35 +31,36 @@
 - Phase 3-4: Implementation execution (manual or via tools)
 
 ## Summary
-[Extract from feature spec: primary requirement + technical approach from research]
+Implement a complete initial SaaS structure with modern landing page, three-tier subscription plans, Stripe payment integration, user authentication (email/password + Google OAuth), and admin area with profile/dashboard/settings sections. Built using Next.js 14 + Amplify Gen 2 + ShadCN with Google login integration through Amplify Auth (Cognito).
 
 ## Technical Context
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: TypeScript with Next.js 14+ (App Router), strict mode enabled
+**Primary Dependencies**: AWS Amplify Gen 2, ShadCN/ui, Tailwind CSS, Stripe SDK, Google OAuth via Cognito
+**Storage**: AWS DynamoDB via Amplify Gen 2 data layer with GraphQL
+**Testing**: Vitest for unit testing, Playwright for E2E testing
+**Target Platform**: Web application (SSR/SSG) hosted on Amplify Hosting with CDN
+**Project Type**: web - frontend + backend integrated via Amplify Gen 2
+**Performance Goals**: <2s page loads on 3G, Core Web Vitals compliance (LCP <2.5s, FID <100ms, CLS <0.1)
+**Constraints**: Core tech stack only (Next.js + Amplify + ShadCN + Stripe), Google login via Amplify Auth only
+**Scale/Scope**: Multi-tenant SaaS with 3 subscription tiers, landing page + admin area (3 sections), dual auth methods
 
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 ### Core Principle Compliance
-- [ ] **Minimal Dependencies**: Only NextJS, Amplify Gen 2, ShadCN, Stripe used
-- [ ] **SaaS-First**: Multi-tenancy and Stripe billing integration planned
-- [ ] **Component-Based**: ShadCN components with atomic design approach
-- [ ] **API-First**: Amplify Gen 2 GraphQL contracts defined before implementation
-- [ ] **Performance**: <2s page loads and Core Web Vitals targets planned
+- [x] **Minimal Dependencies**: Only NextJS, Amplify Gen 2, ShadCN, Stripe used (Google OAuth via Amplify Auth)
+- [x] **SaaS-First**: Multi-tenancy and Stripe billing integration planned
+- [x] **Component-Based**: ShadCN components with atomic design approach
+- [x] **API-First**: Amplify Gen 2 GraphQL contracts defined before implementation
+- [x] **Performance**: <2s page loads and Core Web Vitals targets planned
 
 ### Technology Stack Compliance
-- [ ] Next.js 14+ with App Router (no alternative frameworks)
-- [ ] AWS Amplify Gen 2 for backend (GraphQL, Lambda, DynamoDB)
-- [ ] ShadCN/ui + Tailwind CSS (no custom CSS frameworks)
-- [ ] Stripe integration (no alternative payment processors)
-- [ ] TypeScript strict mode with 100% type coverage plan
+- [x] Next.js 14+ with App Router (no alternative frameworks)
+- [x] AWS Amplify Gen 2 for backend (GraphQL, Lambda, DynamoDB)
+- [x] ShadCN/ui + Tailwind CSS (no custom CSS frameworks)
+- [x] Stripe integration (no alternative payment processors)
+- [x] TypeScript strict mode with 100% type coverage plan
+- [x] Amplify Auth only (Google OAuth through Cognito, not third-party)
 
 ## Project Structure
 
@@ -111,7 +112,7 @@ ios/ or android/
 └── [platform-specific structure]
 ```
 
-**Structure Decision**: [DEFAULT to Option 1 unless Technical Context indicates web/mobile app]
+**Structure Decision**: Option 2 (Web application) - Next.js frontend with Amplify Gen 2 backend integration
 
 ## Phase 0: Outline & Research
 1. **Extract unknowns from Technical Context** above:
@@ -206,18 +207,18 @@ ios/ or android/
 *This checklist is updated during execution flow*
 
 **Phase Status**:
-- [ ] Phase 0: Research complete (/plan command)
-- [ ] Phase 1: Design complete (/plan command)
-- [ ] Phase 2: Task planning complete (/plan command - describe approach only)
+- [x] Phase 0: Research complete (/plan command) - Updated with Google OAuth
+- [x] Phase 1: Design complete (/plan command) - Updated with Google OAuth
+- [x] Phase 2: Task planning complete (/plan command - describe approach only)
 - [ ] Phase 3: Tasks generated (/tasks command)
 - [ ] Phase 4: Implementation complete
 - [ ] Phase 5: Validation passed
 
 **Gate Status**:
-- [ ] Initial Constitution Check: PASS
-- [ ] Post-Design Constitution Check: PASS
-- [ ] All NEEDS CLARIFICATION resolved
-- [ ] Complexity deviations documented
+- [x] Initial Constitution Check: PASS (Google OAuth via Amplify Auth)
+- [x] Post-Design Constitution Check: PASS
+- [x] All NEEDS CLARIFICATION resolved
+- [x] Complexity deviations documented (none required - Google OAuth is native Amplify feature)
 
 ---
 *Based on VideoSaaS Constitution v1.0.0 - See `.specify/memory/constitution.md`*
