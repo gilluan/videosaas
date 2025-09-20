@@ -1,8 +1,19 @@
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia',
-})
+let stripeClient: Stripe | null = null
+
+function getStripeClient(): Stripe {
+  if (!stripeClient) {
+    const secretKey = process.env.STRIPE_SECRET_KEY
+    if (!secretKey) {
+      throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+    }
+    stripeClient = new Stripe(secretKey, {
+      apiVersion: '2025-02-24.acacia',
+    })
+  }
+  return stripeClient
+}
 
 export interface SubscriptionPlan {
   id: string
@@ -63,6 +74,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
 export const stripeUtils = {
   async createCheckoutSession(priceId: string, userId: string, tenantId: string) {
     try {
+      const stripe = getStripeClient()
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: [
@@ -90,6 +102,7 @@ export const stripeUtils = {
 
   async createCustomerPortalSession(customerId: string) {
     try {
+      const stripe = getStripeClient()
       const session = await stripe.billingPortal.sessions.create({
         customer: customerId,
         return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings`,
@@ -104,6 +117,7 @@ export const stripeUtils = {
 
   async getSubscription(subscriptionId: string) {
     try {
+      const stripe = getStripeClient()
       const subscription = await stripe.subscriptions.retrieve(subscriptionId)
       return subscription
     } catch (error) {
@@ -114,6 +128,7 @@ export const stripeUtils = {
 
   async cancelSubscription(subscriptionId: string) {
     try {
+      const stripe = getStripeClient()
       const subscription = await stripe.subscriptions.cancel(subscriptionId)
       return subscription
     } catch (error) {
@@ -124,6 +139,7 @@ export const stripeUtils = {
 
   async constructWebhookEvent(body: string, signature: string) {
     try {
+      const stripe = getStripeClient()
       const event = stripe.webhooks.constructEvent(
         body,
         signature,
@@ -152,4 +168,4 @@ export const stripeUtils = {
   },
 }
 
-export { stripe }
+export { getStripeClient }
