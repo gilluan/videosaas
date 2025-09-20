@@ -1,0 +1,185 @@
+# Amplify Gen 2 GraphQL Schema
+# This schema defines the data layer for the SaaS application
+
+type User @model @auth(rules: [
+  { allow: owner, ownerField: "id" },
+  { allow: private, operations: [read] }
+]) {
+  id: ID!
+  email: String! @index(name: "byEmail", queryField: "getUserByEmail")
+  name: String!
+  avatar: String
+  tenantId: String! @index(name: "byTenant", queryField: "getUsersByTenant")
+  subscriptionId: String
+  authProvider: AuthProvider!
+  googleId: String @index(name: "byGoogleId", queryField: "getUserByGoogleId")
+  emailVerified: Boolean!
+  subscription: Subscription @hasOne(fields: ["subscriptionId"])
+  settings: UserSettings @hasOne(fields: ["id"])
+  metrics: [DashboardMetrics] @hasMany(indexName: "byUser", fields: ["id"])
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+  LINKED
+}
+
+type Subscription @model @auth(rules: [
+  { allow: owner, ownerField: "userId" },
+  { allow: private, operations: [read] }
+]) {
+  id: ID!
+  userId: String! @index(name: "byUser", queryField: "getSubscriptionByUser")
+  tenantId: String! @index(name: "byTenant", queryField: "getSubscriptionsByTenant")
+  user: User @belongsTo(fields: ["userId"])
+  stripeSubscriptionId: String!
+  stripePriceId: String!
+  status: SubscriptionStatus!
+  currentPeriodStart: AWSDateTime!
+  currentPeriodEnd: AWSDateTime!
+  cancelAtPeriodEnd: Boolean!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  INCOMPLETE
+  TRIALING
+}
+
+type SubscriptionPlan @model @auth(rules: [
+  { allow: public, operations: [read] },
+  { allow: private, operations: [create, update, delete] }
+]) {
+  id: ID!
+  name: String!
+  description: String!
+  stripePriceId: String!
+  price: Int!
+  currency: String!
+  interval: BillingInterval!
+  features: [String!]!
+  maxUsers: Int
+  maxProjects: Int
+  priority: Int! @index(name: "byPriority", queryField: "getPlansByPriority")
+  active: Boolean! @index(name: "byActive", queryField: "getActivePlans")
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+}
+
+type UserSettings @model @auth(rules: [
+  { allow: owner, ownerField: "userId" }
+]) {
+  id: ID!
+  userId: String! @index(name: "byUser", queryField: "getSettingsByUser")
+  tenantId: String!
+  user: User @belongsTo(fields: ["userId"])
+  theme: Theme!
+  notifications: AWSJSON! # NotificationSettings as JSON
+  language: String!
+  timezone: String!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+enum Theme {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+type DashboardMetrics @model @auth(rules: [
+  { allow: owner, ownerField: "userId" }
+]) {
+  id: ID!
+  userId: String! @index(name: "byUser", queryField: "getMetricsByUser")
+  tenantId: String!
+  user: User @belongsTo(fields: ["userId"])
+  metricDate: AWSDate! @index(name: "byUserDate", queryField: "getMetricsByUserDate", sortKeyFields: ["metricDate"])
+  totalUsers: Int!
+  activeUsers: Int!
+  subscriptionRevenue: Int!
+  conversionRate: Float!
+  churnRate: Float!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# Custom mutations for Stripe integration and OAuth
+type Mutation {
+  createCheckoutSession(input: CreateCheckoutSessionInput!): CheckoutSessionOutput
+    @function(name: "createCheckoutSession")
+    @auth(rules: [{ allow: private }])
+
+  handleStripeWebhook(input: StripeWebhookInput!): StripeWebhookOutput
+    @function(name: "handleStripeWebhook")
+    @auth(rules: [{ allow: public }])
+
+  updateSubscription(input: UpdateSubscriptionInput!): Subscription
+    @function(name: "updateSubscription")
+    @auth(rules: [{ allow: private }])
+
+  linkGoogleAccount(input: LinkGoogleAccountInput!): User
+    @function(name: "linkGoogleAccount")
+    @auth(rules: [{ allow: private }])
+
+  unlinkGoogleAccount: User
+    @function(name: "unlinkGoogleAccount")
+    @auth(rules: [{ allow: private }])
+}
+
+# Input types for custom mutations
+input CreateCheckoutSessionInput {
+  priceId: String!
+  successUrl: String!
+  cancelUrl: String!
+}
+
+input StripeWebhookInput {
+  payload: String!
+  signature: String!
+}
+
+input UpdateSubscriptionInput {
+  subscriptionId: String!
+  priceId: String
+  cancelAtPeriodEnd: Boolean
+}
+
+input LinkGoogleAccountInput {
+  googleToken: String!
+  googleId: String!
+}
+
+# Output types for custom mutations
+type CheckoutSessionOutput {
+  sessionId: String!
+  url: String!
+}
+
+type StripeWebhookOutput {
+  success: Boolean!
+  message: String
+}
+
+# Subscription for real-time updates
+type Subscription {
+  onSubscriptionUpdated(userId: String!): Subscription
+    @aws_subscribe(mutations: ["updateSubscription"])
+    @auth(rules: [{ allow: private }])
+
+  onMetricsUpdated(userId: String!): DashboardMetrics
+    @aws_subscribe(mutations: ["createDashboardMetrics", "updateDashboardMetrics"])
+    @auth(rules: [{ allow: private }])
+}
