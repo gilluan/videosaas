@@ -2,7 +2,14 @@ import { getCurrentUser, signOut, signIn, signUp, confirmSignUp, resendSignUpCod
 import { generateClient } from 'aws-amplify/api'
 import type { Schema } from '../../amplify/data/resource'
 
-const client = generateClient<Schema>()
+// Helper function to get client safely
+function getGraphQLClient() {
+  // Don't try to create client during build process
+  if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+    return null
+  }
+  return generateClient<Schema>()
+}
 
 export interface User {
   id: string
@@ -43,6 +50,11 @@ export const authUtils = {
       const cognitoUser = await getCurrentUser()
 
       // Get user data from our GraphQL API
+      const client = getGraphQLClient()
+      if (!client) {
+        return null
+      }
+
       const result = await client.graphql({
         query: `
           query GetCurrentUser($id: ID!) {
@@ -99,6 +111,11 @@ export const authUtils = {
       if (nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
         const tenantId = generateTenantId()
 
+        const client = getGraphQLClient()
+        if (!client) {
+          throw new Error('GraphQL client not available')
+        }
+
         await client.graphql({
           query: `
             mutation CreateUser($input: CreateUserInput!) {
@@ -134,6 +151,11 @@ export const authUtils = {
       await confirmSignUp({ username: email, confirmationCode: code })
 
       // Update user as email verified
+      const client = getGraphQLClient()
+      if (!client) {
+        throw new Error('GraphQL client not available')
+      }
+
       await client.graphql({
         query: `
           mutation UpdateUserEmailVerified($input: UpdateUserInput!) {
@@ -192,6 +214,11 @@ export const authUtils = {
       const googleId = user.username // Cognito maps Google ID to username
 
       // Check if user already exists
+      const client = getGraphQLClient()
+      if (!client) {
+        throw new Error('GraphQL client not available')
+      }
+
       const existingUserResult = await client.graphql({
         query: `
           query GetUserByEmail($email: String!) {
