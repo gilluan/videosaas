@@ -4,7 +4,14 @@ import { generateClient } from 'aws-amplify/api'
 import type { Schema } from '../../../../../amplify/data/resource'
 import Stripe from 'stripe'
 
-const client = generateClient<Schema>()
+// Helper function to get client safely
+function getGraphQLClient() {
+  // Don't try to create client during build process
+  if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+    return null
+  }
+  return generateClient<Schema>()
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,6 +22,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Missing stripe signature' },
         { status: 400 }
+      )
+    }
+
+    // Check if GraphQL client is available (not during build)
+    const client = getGraphQLClient()
+    if (!client) {
+      return NextResponse.json(
+        { error: 'Service temporarily unavailable' },
+        { status: 503 }
       )
     }
 
