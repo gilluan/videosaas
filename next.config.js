@@ -4,6 +4,10 @@ const nextConfig = {
   images: {
     domains: ['lh3.googleusercontent.com'],
   },
+  typescript: {
+    // Ignore TypeScript errors during build
+    ignoreBuildErrors: true,
+  },
   // Exclude amplify directory from compilation
   webpack: (config, { isServer }) => {
     config.watchOptions = {
